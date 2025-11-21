@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Performance Predictor</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+  <!-- Enhanced Navbar -->
+  <nav class="navbar navbar-dark bg-primary px-4">
+    <span class="navbar-brand">
+      <i class="fas fa-graduation-cap me-2"></i>
+      Student Performance Predictor
+    </span>
+    <a class="btn btn-light" href="/dashboard">
+      <i class="fas fa-chart-bar me-2"></i>View Dashboard
+    </a>
+  </nav>
+
+  <!-- Main Container -->
+  <div class="container">
+    <div class="form-container">
+      <!-- Header -->
+      <div class="text-center mb-4">
+        <h3>
+          <i class="fas fa-brain text-primary me-2"></i>
+          Predict Student Performance
+        </h3>
+        <p class="text-muted">Enter student details to get AI-powered predictions</p>
+      </div>
+
+      <!-- Error Alert -->
+      {% if error %}
+        <div class="alert alert-danger" role="alert">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          {{ error }}
+        </div>
+      {% endif %}
+
+      <!-- Prediction Form -->
+      <form method="POST" action="/predict" id="predictionForm">
+        <div class="row">
+          <div class="col-md-6 mb-4">
+            <label class="form-label">
+              <i class="fas fa-book text-primary me-2"></i>
+              Study Hours per Day
+            </label>
+            <input 
+              name="study_hours" 
+              class="form-control" 
+              type="number" 
+              step="0.1" 
+              min="0" 
+              max="24"
+              placeholder="e.g., 5.5"
+              required
+            >
+            <small class="text-muted">Hours spent studying daily</small>
+          </div>
+
+          <div class="col-md-6 mb-4">
+            <label class="form-label">
+              <i class="fas fa-bed text-primary me-2"></i>
+              Sleep Hours per Day
+            </label>
+            <input 
+              name="sleep_hours" 
+              class="form-control" 
+              type="number" 
+              step="0.1" 
+              min="0" 
+              max="24"
+              placeholder="e.g., 8.0"
+              required
+            >
+            <small class="text-muted">Average hours of sleep</small>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-4">
+            <label class="form-label">
+              <i class="fas fa-calendar-check text-primary me-2"></i>
+              Attendance (%)
+            </label>
+            <input 
+              name="attendance" 
+              class="form-control" 
+              type="number" 
+              min="0" 
+              max="100"
+              placeholder="e.g., 85"
+              required
+            >
+            <small class="text-muted">Class attendance percentage</small>
+          </div>
+
+          <div class="col-md-6 mb-4">
+            <label class="form-label">
+              <i class="fas fa-users text-primary me-2"></i>
+              Social Media Hours
+            </label>
+            <input 
+              name="social_activity" 
+              class="form-control" 
+              type="number" 
+              step="0.1" 
+              min="0"
+              placeholder="e.g., 3.5"
+              required
+            >
+            <small class="text-muted">Hours on social media per day</small>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label">
+            <i class="fas fa-heartbeat text-primary me-2"></i>
+            Health Score (0-10)
+          </label>
+          <input 
+            name="health_score" 
+            class="form-control" 
+            type="number" 
+            step="0.1" 
+            min="0" 
+            max="10"
+            placeholder="e.g., 7.5"
+            required
+          >
+          <small class="text-muted">Overall health and wellness score</small>
+        </div>
+
+        <button class="btn btn-primary w-100" type="submit" id="submitBtn">
+          <i class="fas fa-magic me-2"></i>
+          Generate Prediction
+        </button>
+      </form>
+
+      <!-- Result Display -->
+      {% if predicted_label %}
+        <div class="result-card">
+          <h5>
+            {% if predicted_label == "PASS" %}
+              <i class="fas fa-check-circle me-2"></i>
+            {% else %}
+              <i class="fas fa-times-circle me-2"></i>
+            {% endif %}
+            {{ predicted_label }}
+          </h5>
+          
+          <div class="result-stats">
+            <div class="stat-item">
+              <div class="stat-label">
+                <i class="fas fa-chart-line me-1"></i>
+                Predicted Score
+              </div>
+              <div class="stat-value">{{ predicted_score }}</div>
+            </div>
+            
+            <div class="stat-item">
+              <div class="stat-label">
+                <i class="fas fa-percentage me-1"></i>
+                Pass Probability
+              </div>
+              <div class="stat-value">{{ "%.1f"|format(mean_prob * 100) }}%</div>
+            </div>
+          </div>
+
+          {% if predicted_label == "PASS" %}
+            <div class="text-center mt-3">
+              <i class="fas fa-trophy fa-2x mb-2"></i>
+              <p class="mb-0">Great job! Keep up the excellent work!</p>
+            </div>
+          {% else %}
+            <div class="text-center mt-3">
+              <i class="fas fa-lightbulb fa-2x mb-2"></i>
+              <p class="mb-0">Focus on improving study habits and attendance!</p>
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Form Enhancement Script -->
+  <script>
+    // Add loading state to submit button
+    document.getElementById('predictionForm')?.addEventListener('submit', function() {
+      const btn = document.getElementById('submitBtn');
+      if (btn) {
+        btn.innerHTML = '<span class="loading me-2"></span>Processing...';
+        btn.disabled = true;
+      }
+    });
+
+    // Add smooth number input validation
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+      input.addEventListener('input', function() {
+        if (this.validity.valid) {
+          this.style.borderColor = '#10b981';
+        } else {
+          this.style.borderColor = '#ef4444';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

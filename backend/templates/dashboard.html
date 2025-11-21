@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Student Models & EDA</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+  <!-- Enhanced Navbar -->
+  <nav class="navbar navbar-dark bg-primary px-4">
+    <a class="navbar-brand" href="/">
+      <i class="fas fa-graduation-cap me-2"></i>
+      Student Performance Predictor
+    </a>
+    <a class="btn btn-light" href="/">
+      <i class="fas fa-arrow-left me-2"></i>Back
+    </a>
+  </nav>
+
+  <!-- Dashboard Header -->
+  <div class="container">
+    <div class="dashboard-header">
+      <h1>
+        <i class="fas fa-chart-line text-primary me-2"></i>
+        Exploratory Data Analysis
+      </h1>
+      <p class="text-muted mb-0">Comprehensive insights into student performance patterns</p>
+    </div>
+
+    <!-- Error Alert -->
+    {% if eda_error %}
+      <div class="alert alert-warning" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        EDA generation error: {{ eda_error }}
+      </div>
+    {% endif %}
+
+    <!-- EDA Images Grid -->
+    <div class="row g-4">
+      <!-- Exam Score Distribution -->
+      {% if eda_images.exam_hist %}
+        <div class="col-lg-6 col-md-6">
+          <div class="eda-card">
+            <h6>
+              <i class="fas fa-chart-bar me-2"></i>
+              Exam Score Distribution
+            </h6>
+            <img src="{{ eda_images.exam_hist }}" class="img-fluid" alt="Exam Score Distribution">
+            <p class="text-muted mt-3 mb-0 small">
+              <i class="fas fa-info-circle me-1"></i>
+              Distribution of exam scores across all students
+            </p>
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Correlation Heatmap -->
+      {% if eda_images.corr %}
+        <div class="col-lg-6 col-md-6">
+          <div class="eda-card">
+            <h6>
+              <i class="fas fa-project-diagram me-2"></i>
+              Correlation Heatmap
+            </h6>
+            <img src="{{ eda_images.corr }}" class="img-fluid" alt="Correlation Heatmap">
+            <p class="text-muted mt-3 mb-0 small">
+              <i class="fas fa-info-circle me-1"></i>
+              Relationships between different features
+            </p>
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Study Hours vs Score -->
+      {% if eda_images.study_scatter %}
+        <div class="col-lg-6 col-md-6">
+          <div class="eda-card">
+            <h6>
+              <i class="fas fa-book-reader me-2"></i>
+              Study Hours vs Exam Score
+            </h6>
+            <img src="{{ eda_images.study_scatter }}" class="img-fluid" alt="Study Hours vs Score">
+            <p class="text-muted mt-3 mb-0 small">
+              <i class="fas fa-info-circle me-1"></i>
+              Impact of study hours on exam performance
+            </p>
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Attendance Distribution -->
+      {% if eda_images.attendance_box %}
+        <div class="col-lg-6 col-md-6">
+          <div class="eda-card">
+            <h6>
+              <i class="fas fa-calendar-alt me-2"></i>
+              Attendance Distribution
+            </h6>
+            <img src="{{ eda_images.attendance_box }}" class="img-fluid" alt="Attendance Distribution">
+            <p class="text-muted mt-3 mb-0 small">
+              <i class="fas fa-info-circle me-1"></i>
+              Statistical distribution of attendance rates
+            </p>
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Social Media Hours -->
+      {% if eda_images.social_dist %}
+        <div class="col-lg-6 col-md-6">
+          <div class="eda-card">
+            <h6>
+              <i class="fas fa-share-alt me-2"></i>
+              Social Media Hours Distribution
+            </h6>
+            <img src="{{ eda_images.social_dist }}" class="img-fluid" alt="Social Media Hours">
+            <p class="text-muted mt-3 mb-0 small">
+              <i class="fas fa-info-circle me-1"></i>
+              Distribution of social media usage patterns
+            </p>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Footer Info -->
+    <div class="text-center mt-5 mb-4">
+      <p class="text-muted">
+        <i class="fas fa-chart-pie me-2"></i>
+        All visualizations are generated using machine learning models
+      </p>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Smooth Scroll Animation -->
+  <script>
+    // Add fade-in animation to cards
+    document.addEventListener('DOMContentLoaded', function() {
+      const cards = document.querySelectorAll('.eda-card');
+      cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+          card.style.transition = 'all 0.5s ease';
+          card.style.opacity = '1';
+          card.style.transform = 'translateY(0)';
+        }, index * 100);
+      });
+    });
+  </script>
+</body>
+</html>

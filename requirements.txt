@@ -1,0 +1,10 @@
+# Python dependencies for student performance project
+flask
+numpy
+pandas
+scikit-learn
+joblib
+gunicorn
+matplotlib 
+seaborn
+
