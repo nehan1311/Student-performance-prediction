@@ -119,20 +119,20 @@
 
         <div class="mb-4">
           <label class="form-label">
-            <i class="fas fa-heartbeat text-primary me-2"></i>
-            Health Score (0-10)
+            <i class="fas fa-tv text-primary me-2"></i>
+            Netflix Hours per Day
           </label>
           <input 
-            name="health_score" 
+            name="netflix_hours" 
             class="form-control" 
             type="number" 
             step="0.1" 
             min="0" 
-            max="10"
-            placeholder="e.g., 7.5"
+            max="24"
+            placeholder="e.g., 2.5"
             required
           >
-          <small class="text-muted">Overall health and wellness score</small>
+          <small class="text-muted">Hours spent watching Netflix/streaming per day</small>
         </div>
 
         <button class="btn btn-primary w-100" type="submit" id="submitBtn">
@@ -182,6 +182,53 @@
               <p class="mb-0">Focus on improving study habits and attendance!</p>
             </div>
           {% endif %}
+        </div>
+      {% endif %}
+
+      <!-- Recommendations Section -->
+      {% if recommendations %}
+        <div class="recommendations-card mt-4">
+          <div class="recommendations-header">
+            <i class="fas fa-star me-2"></i>
+            <h5 class="mb-0">Personalized Recommendations</h5>
+          </div>
+          
+          <div class="recommendations-content">
+            {% for rec in recommendations %}
+              {% if rec.startswith('---') %}
+                <!-- Section Separator -->
+                <div class="recommendation-section-divider">
+                  <span>{{ rec.replace('---', '').strip() }}</span>
+                </div>
+              {% elif rec.startswith('🟥') %}
+                <!-- Cluster Header - High Risk -->
+                <div class="recommendation-cluster-header cluster-high-risk">
+                  {{ rec }}
+                </div>
+              {% elif rec.startswith('🟨') or rec.startswith('🟧') %}
+                <!-- Cluster Header - Moderate -->
+                <div class="recommendation-cluster-header cluster-moderate">
+                  {{ rec }}
+                </div>
+              {% elif rec.startswith('🟩') %}
+                <!-- Cluster Header - Good -->
+                <div class="recommendation-cluster-header cluster-good">
+                  {{ rec }}
+                </div>
+              {% elif rec.startswith('•') %}
+                <!-- Recommendation Item -->
+                <div class="recommendation-item">
+                  <i class="fas fa-check-circle recommendation-icon"></i>
+                  <span>{{ rec }}</span>
+                </div>
+              {% else %}
+                <!-- General Text -->
+                <div class="recommendation-text">
+                  {{ rec }}
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
         </div>
       {% endif %}
     </div>

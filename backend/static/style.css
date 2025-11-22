@@ -541,3 +541,171 @@ small {
     color: var(--text-secondary);
     font-size: 0.875rem;
 }
+
+/* Recommendations Section Styling */
+.recommendations-card {
+    background: var(--bg-primary);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--border-color);
+    margin-top: 2rem;
+    animation: slideIn 0.6s ease;
+}
+
+.recommendations-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.recommendations-header i {
+    color: var(--primary-color);
+    font-size: 1.5rem;
+}
+
+.recommendations-header h5 {
+    background: var(--bg-gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+.recommendations-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.recommendation-section-divider {
+    margin: 1rem 0 0.5rem 0;
+    text-align: center;
+    position: relative;
+}
+
+.recommendation-section-divider::before,
+.recommendation-section-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 30%;
+    height: 1px;
+    background: var(--border-color);
+}
+
+.recommendation-section-divider::before {
+    left: 0;
+}
+
+.recommendation-section-divider::after {
+    right: 0;
+}
+
+.recommendation-section-divider span {
+    background: var(--bg-primary);
+    padding: 0 1rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+    z-index: 1;
+}
+
+.recommendation-cluster-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin: 0.5rem 0;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.recommendation-cluster-header::before {
+    content: '📊';
+    font-size: 1.3rem;
+}
+
+.recommendation-item {
+    background: var(--bg-secondary);
+    padding: 1rem 1.25rem;
+    border-radius: 10px;
+    border-left: 4px solid var(--primary-color);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    transition: all 0.3s ease;
+    margin-left: 0.5rem;
+}
+
+.recommendation-item:hover {
+    background: white;
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+}
+
+.recommendation-icon {
+    color: var(--success-color);
+    font-size: 1.1rem;
+    margin-top: 0.1rem;
+    flex-shrink: 0;
+}
+
+.recommendation-item span {
+    color: var(--text-primary);
+    font-size: 1rem;
+    line-height: 1.6;
+    flex: 1;
+}
+
+.recommendation-text {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    padding: 0.75rem 1rem;
+    font-style: italic;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    margin-left: 0.5rem;
+}
+
+/* Cluster-specific styling */
+.recommendation-cluster-header.cluster-high-risk {
+    background: linear-gradient(135deg, var(--danger-color) 0%, #dc2626 100%);
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+.recommendation-cluster-header.cluster-moderate {
+    background: linear-gradient(135deg, var(--warning-color) 0%, #d97706 100%);
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+}
+
+.recommendation-cluster-header.cluster-good {
+    background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .recommendations-card {
+        padding: 1.5rem;
+    }
+    
+    .recommendation-item {
+        margin-left: 0;
+    }
+    
+    .recommendation-section-divider::before,
+    .recommendation-section-divider::after {
+        width: 25%;
+    }
+}

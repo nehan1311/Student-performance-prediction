@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import traceback
 import os
+import json
 
 # Set matplotlib to use non-interactive backend for web applications
 import matplotlib
@@ -21,6 +22,20 @@ BASE = Path(__file__).resolve().parent
 clf_models = joblib.load(BASE/"models/classifier_ensemble.pkl")
 reg_models = joblib.load(BASE/"models/regressor_ensemble.pkl")
 scaler = joblib.load(BASE/"models/scaler.pkl")
+
+# Load KMeans model (if it exists)
+try:
+    kmeans = joblib.load(BASE/"models/kmeans_clusters.pkl")
+except FileNotFoundError:
+    kmeans = None
+    print("⚠️  KMeans model not found. Run model_training.py to generate it.")
+
+# Load cluster mapping (if it exists)
+try:
+    cluster_map = json.load(open(BASE/"models/cluster_map.json"))
+except FileNotFoundError:
+    cluster_map = {"0": "high_risk", "1": "moderate", "2": "good"}  # Default mapping
+    print("⚠️  Cluster map not found. Using default mapping.")
 
 
 def generate_eda_images(force=False):
@@ -133,12 +148,14 @@ model_feature_order = [
 ]
 
 # Mapping from frontend → backend expected feature names
+# Note: health_score is NOT mapped as it's not a model feature
 frontend_to_backend = {
     "study_hours": "study_hours_per_day",
     "social_activity": "social_media_hours",
-    "health_score": "netflix_hours",
     "attendance": "attendance_percentage",
-    "sleep_hours": "sleep_hours"
+    "sleep_hours": "sleep_hours",
+    # netflix_hours must be provided directly or will be missing
+    "netflix_hours": "netflix_hours"
 }
 
 
@@ -167,7 +184,13 @@ def prepare_features(payload):
             values.append(np.nan)
             continue
 
-        values.append(float(value))
+        val = float(value)
+
+        # Normalize attendance (divide by 100)
+        if frontend_key == "attendance":
+            val = val / 100
+
+        values.append(val)
 
     if missing:
         raise ValueError(f"Missing input(s): {', '.join(missing)}")
@@ -191,6 +214,66 @@ def ensemble_regress(X):
     return float(np.mean(preds)), preds
 
 
+def clustering_recommendations(features):
+    """
+    Use KMeans cluster to give group-based recommendations.
+    """
+    if kmeans is None:
+        return ["⚠️ Clustering model not available. Please train the model first."]
+    
+    # Use the same feature preparation as prediction to ensure consistency
+    try:
+        fvals = prepare_features(features)
+    except:
+        # Fallback if prepare_features fails - use correct feature names
+        # Note: health_score is NOT used as it's not a model feature
+        fvals = np.array([
+            float(features.get("study_hours", 0) or features.get("study_hours_per_day", 0)),
+            float(features.get("social_activity", 0) or features.get("social_media_hours", 0)),
+            float(features.get("netflix_hours", 0)),  # Use netflix_hours directly, not health_score
+            float(features.get("attendance", 0) or features.get("attendance_percentage", 0)),
+            float(features.get("sleep_hours", 0)),
+        ]).reshape(1, -1)
+
+    # Scale just like training
+    fvals_scaled = scaler.transform(fvals)
+
+    # Predict cluster
+    cluster_id = int(kmeans.predict(fvals_scaled)[0])
+    
+    # Get cluster type from mapping
+    cluster_type = cluster_map.get(str(cluster_id), "moderate")
+
+    rec = []
+
+    # ---------------------------
+    # CLUSTER-BASED RECOMMENDATIONS
+    # ---------------------------
+
+    if cluster_type == "high_risk":
+        rec.append("🟥 Cluster: High-risk behavior detected.")
+        rec.append("• Increase study time and reduce distractions.")
+        rec.append("• Start small daily study targets (30–45 mins).")
+        rec.append("• Reduce social media + Netflix during study hours.")
+        rec.append("• Try to attend more classes regularly.")
+
+    elif cluster_type == "moderate":
+        rec.append("🟧 Cluster: Moderate / average group.")
+        rec.append("• You have balanced habits, but improvement is possible.")
+        rec.append("• Optimize study hours with planned scheduling.")
+        rec.append("• Improve sleep consistency for better retention.")
+        rec.append("• Try mock tests weekly to boost exam performance.")
+
+    elif cluster_type == "good":
+        rec.append("🟩 Cluster: Good habits group.")
+        rec.append("• Great job! Maintain consistent study hours.")
+        rec.append("• Practice advanced revision techniques.")
+        rec.append("• Continue your healthy sleep and routine habits.")
+        rec.append("• Keep distractions low for best performance.")
+
+    return rec
+
+
 # ROUTES
 @app.route("/")
 def index():
@@ -208,12 +291,22 @@ def predict():
         cls, prob = ensemble_classify(X_scaled)
         reg_pred, reg_preds = ensemble_regress(X_scaled)
 
+        # Get clustering recommendations
+        cluster_based = clustering_recommendations(payload)
+        
+        # Combine recommendations (if other recommendation systems exist, add them here)
+        recommendations = (
+            ["--- Based on your behavior group (Clustering) ---"]
+            + cluster_based
+        )
+
         return render_template(
             "index.html",
             predicted_label="PASS" if cls == 1 else "FAIL",
             predicted_score=round(reg_pred, 2),
             mean_prob=round(prob, 3),
-            individual_reg_preds=[round(p, 2) for p in reg_preds]
+            individual_reg_preds=[round(p, 2) for p in reg_preds],
+            recommendations=recommendations
         )
     except Exception as e:
         return render_template("index.html", error=str(e)), 400
