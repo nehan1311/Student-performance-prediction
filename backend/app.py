@@ -39,103 +39,105 @@ except FileNotFoundError:
 
 
 def generate_eda_images(force=False):
-    """
-    Generates EDA PNG images into backend/static/eda/.
-    If force=True, regenerate even if files exist.
-    Returns dict of relative static paths (for templates).
-    """
     eda_dir = BASE.joinpath("static", "eda")
     os.makedirs(eda_dir, exist_ok=True)
 
-    # prefer project data copy if present, else fallback to uploaded path
-    data_path_candidates = [
-        BASE.joinpath("..", "data", "student_habits_performance.csv"),  # recommended
-        Path("/mnt/data/student_habits_performance.csv")                # uploaded
-    ]
-    df = None
-    for p in data_path_candidates:
-        if Path(p).exists():
-            df = pd.read_csv(p)
-            break
-    if df is None:
-        raise FileNotFoundError("Dataset not found. Please place student_habits_performance.csv in data/ or use /mnt/data/ path.")
+    # Load dataset
+    data_path = BASE.joinpath("..", "data", "student_habits_performance.csv")
+    df = pd.read_csv(data_path)
+    # FULL CLEANING FIX
+    df["exam_score"] = (
+        df["exam_score"]
+            .astype(str)
+            .str.strip()
+            .str.replace(r"[^0-9.]", "", regex=True)
+            .replace("", np.nan)
+    )
 
-    # Numeric columns we care about (existing in your CSV)
-    numeric_cols = [
-        "study_hours_per_day",
-        "social_media_hours",
-        "netflix_hours",
-        "attendance_percentage",
-        "sleep_hours",
-        "exam_score"
-    ]
-    # Keep only present columns
-    numeric_cols = [c for c in numeric_cols if c in df.columns]
+    df["exam_score"] = pd.to_numeric(df["exam_score"], errors="coerce")
+    df = df.dropna(subset=["exam_score"])
+
+
+    # FIX attendance scale if stored as 0–1
+    if df["attendance_percentage"].max() <= 1:
+        df["attendance_percentage"] = df["attendance_percentage"] * 100
 
     imgs = {}
 
-    # 1) Histogram of exam_score
-    hist_path = eda_dir.joinpath("exam_score_hist.png")
-    if force or not hist_path.exists():
+    # --------------------------
+    # 1) Pass vs Fail Distribution (Pie Chart)
+    # --------------------------
+    pie_path = eda_dir / "pass_fail_pie.png"
+    if force or not pie_path.exists():
+        df["pass_fail"] = (df["exam_score"] >= 60).astype(int)
+        counts = df["pass_fail"].value_counts()
+
+        # Ensure labels match the value_counts() order
+        labels = ["Pass" if i == 1 else "Fail" for i in counts.index]
+        colors = ["#55A868" if label == "Pass" else "#C44E52" for label in labels]
+
+        plt.figure(figsize=(5,5))
+        plt.pie(
+            counts,
+            labels=labels,
+            autopct='%1.1f%%',
+            colors=colors,
+            startangle=140
+        )
+        plt.title("Pass vs Fail Distribution")
+        plt.tight_layout()
+        plt.savefig(pie_path, dpi=150)
+        plt.close()
+
+    imgs["pass_fail_pie"] = url_for("static", filename=f"eda/{pie_path.name}")
+
+    # --------------------------
+    # 2) Study Hours vs Exam Score
+    # --------------------------
+    scatter_path = eda_dir / "study_vs_score.png"
+    if force or not scatter_path.exists():
         plt.figure(figsize=(6,4))
-        sns.histplot(df["exam_score"].dropna(), bins=20, kde=True)
-        plt.title("Exam Score Distribution")
-        plt.xlabel("Exam Score")
+        sns.scatterplot(data=df, x="study_hours_per_day", y="exam_score", alpha=0.6)
+        sns.regplot(data=df, x="study_hours_per_day", y="exam_score", scatter=False, color="red")
+        plt.title("Study Hours vs Exam Score")
+        plt.xlabel("Study Hours Per Day")
+        plt.ylabel("Exam Score")
         plt.tight_layout()
-        plt.savefig(hist_path, dpi=150)
+        plt.savefig(scatter_path, dpi=150)
         plt.close()
-    imgs["exam_hist"] = url_for("static", filename=f"eda/{hist_path.name}")
+    imgs["study_scatter"] = url_for("static", filename=f"eda/{scatter_path.name}")
 
-    # 2) Correlation heatmap (only numeric columns)
-    corr_path = eda_dir.joinpath("corr_heatmap.png")
-    if force or not corr_path.exists():
-        corr_df = df[numeric_cols].dropna()
-        plt.figure(figsize=(7,6))
-        sns.heatmap(corr_df.corr(), annot=True, fmt=".2f", cmap="vlag", center=0)
-        plt.title("Correlation Heatmap (numeric features)")
+    # --------------------------
+    # 3) Attendance Distribution (Boxplot)
+    # --------------------------
+    attend_path = eda_dir / "attendance_box.png"
+    if force or not attend_path.exists():
+        plt.figure(figsize=(6,4))
+        sns.boxplot(x=df["attendance_percentage"], color="#55A868")
+        plt.title("Attendance Percentage Distribution")
+        plt.xlabel("Attendance (%)")
         plt.tight_layout()
-        plt.savefig(corr_path, dpi=150)
+        plt.savefig(attend_path, dpi=150)
         plt.close()
-    imgs["corr"] = url_for("static", filename=f"eda/{corr_path.name}")
+    imgs["attendance_box"] = url_for("static", filename=f"eda/{attend_path.name}")
 
-    # 3) Scatter: study_hours vs exam_score
-    if "study_hours_per_day" in df.columns and "exam_score" in df.columns:
-        scatter_path = eda_dir.joinpath("study_vs_score.png")
-        if force or not scatter_path.exists():
-            plt.figure(figsize=(6,4))
-            sns.scatterplot(data=df, x="study_hours_per_day", y="exam_score")
-            sns.regplot(data=df, x="study_hours_per_day", y="exam_score", scatter=False, color="red")
-            plt.title("Study Hours vs Exam Score")
-            plt.tight_layout()
-            plt.savefig(scatter_path, dpi=150)
-            plt.close()
-        imgs["study_scatter"] = url_for("static", filename=f"eda/{scatter_path.name}")
-
-    # 4) Boxplot: attendance
-    if "attendance_percentage" in df.columns:
-        box_path = eda_dir.joinpath("attendance_box.png")
-        if force or not box_path.exists():
-            plt.figure(figsize=(6,3))
-            sns.boxplot(x=df["attendance_percentage"].dropna())
-            plt.title("Attendance (%) - Boxplot")
-            plt.tight_layout()
-            plt.savefig(box_path, dpi=150)
-            plt.close()
-        imgs["attendance_box"] = url_for("static", filename=f"eda/{box_path.name}")
-
-    # 5) Distribution social_media_hours
-    if "social_media_hours" in df.columns:
-        sm_path = eda_dir.joinpath("social_media_dist.png")
-        if force or not sm_path.exists():
-            plt.figure(figsize=(6,4))
-            sns.histplot(df["social_media_hours"].dropna(), bins=20, kde=True)
-            plt.title("Social Media Hours Distribution")
-            plt.tight_layout()
-            plt.savefig(sm_path, dpi=150)
-            plt.close()
-        imgs["social_dist"] = url_for("static", filename=f"eda/{sm_path.name}")
+    # --------------------------
+    # 4) Social Media Hours Distribution
+    # --------------------------
+    sm_path = eda_dir / "social_media_dist.png"
+    if force or not sm_path.exists():
+        plt.figure(figsize=(6,4))
+        sns.histplot(df["social_media_hours"], bins=20, kde=True, color="#C44E52")
+        plt.title("Social Media Hours Distribution")
+        plt.xlabel("Hours per Day")
+        plt.ylabel("Number of Students")
+        plt.tight_layout()
+        plt.savefig(sm_path, dpi=150)
+        plt.close()
+    imgs["social_dist"] = url_for("static", filename=f"eda/{sm_path.name}")
 
     return imgs
+
 
 
 # FEATURE ORDER (must match training)
@@ -251,21 +253,18 @@ def clustering_recommendations(features):
     # ---------------------------
 
     if cluster_type == "high_risk":
-        rec.append("🟥 Cluster: High-risk behavior detected.")
         rec.append("• Increase study time and reduce distractions.")
         rec.append("• Start small daily study targets (30–45 mins).")
         rec.append("• Reduce social media + Netflix during study hours.")
         rec.append("• Try to attend more classes regularly.")
 
     elif cluster_type == "moderate":
-        rec.append("🟧 Cluster: Moderate / average group.")
         rec.append("• You have balanced habits, but improvement is possible.")
         rec.append("• Optimize study hours with planned scheduling.")
         rec.append("• Improve sleep consistency for better retention.")
         rec.append("• Try mock tests weekly to boost exam performance.")
 
     elif cluster_type == "good":
-        rec.append("🟩 Cluster: Good habits group.")
         rec.append("• Great job! Maintain consistent study hours.")
         rec.append("• Practice advanced revision techniques.")
         rec.append("• Continue your healthy sleep and routine habits.")
@@ -294,11 +293,8 @@ def predict():
         # Get clustering recommendations
         cluster_based = clustering_recommendations(payload)
         
-        # Combine recommendations (if other recommendation systems exist, add them here)
-        recommendations = (
-            ["--- Based on your behavior group (Clustering) ---"]
-            + cluster_based
-        )
+        # Just use the cluster-based recommendations directly
+        recommendations = cluster_based
 
         return render_template(
             "index.html",

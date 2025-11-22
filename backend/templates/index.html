@@ -187,48 +187,16 @@
 
       <!-- Recommendations Section -->
       {% if recommendations %}
-        <div class="recommendations-card mt-4">
-          <div class="recommendations-header">
-            <i class="fas fa-star me-2"></i>
+        <div class="recommendation-card">
+          <div class="recommendation-header">
+            <i class="fas fa-lightbulb me-2"></i>
             <h5 class="mb-0">Personalized Recommendations</h5>
           </div>
-          
-          <div class="recommendations-content">
+          <ul class="recommendation-list">
             {% for rec in recommendations %}
-              {% if rec.startswith('---') %}
-                <!-- Section Separator -->
-                <div class="recommendation-section-divider">
-                  <span>{{ rec.replace('---', '').strip() }}</span>
-                </div>
-              {% elif rec.startswith('🟥') %}
-                <!-- Cluster Header - High Risk -->
-                <div class="recommendation-cluster-header cluster-high-risk">
-                  {{ rec }}
-                </div>
-              {% elif rec.startswith('🟨') or rec.startswith('🟧') %}
-                <!-- Cluster Header - Moderate -->
-                <div class="recommendation-cluster-header cluster-moderate">
-                  {{ rec }}
-                </div>
-              {% elif rec.startswith('🟩') %}
-                <!-- Cluster Header - Good -->
-                <div class="recommendation-cluster-header cluster-good">
-                  {{ rec }}
-                </div>
-              {% elif rec.startswith('•') %}
-                <!-- Recommendation Item -->
-                <div class="recommendation-item">
-                  <i class="fas fa-check-circle recommendation-icon"></i>
-                  <span>{{ rec }}</span>
-                </div>
-              {% else %}
-                <!-- General Text -->
-                <div class="recommendation-text">
-                  {{ rec }}
-                </div>
-              {% endif %}
+              <li class="recommendation-item">{{ rec.replace('•', '').strip() }}</li>
             {% endfor %}
-          </div>
+          </ul>
         </div>
       {% endif %}
     </div>

@@ -668,14 +668,103 @@ small {
     flex: 1;
 }
 
-.recommendation-text {
-    color: var(--text-secondary);
-    font-size: 0.95rem;
-    padding: 0.75rem 1rem;
-    font-style: italic;
+/* ======================
+   EDA Section Styles
+   ====================== */
+.eda-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 30px;
+    margin-top: 40px;
+}
+
+/* Cards */
+.eda-card {
+    background: white;
+    padding: 25px;
+    border-radius: 18px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+    transition: 0.25s ease;
+    border: 1px solid #f0f0f0;
+}
+
+.eda-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+/* Title */
+.eda-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 18px;
+    color: #4B4BFF;
+}
+
+/* Chart Images */
+.eda-img {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    border: 1px solid #eaeaea;
+}
+
+/* Caption */
+.eda-caption {
+    margin-top: 12px;
+    font-size: 14px;
+    color: #555;
+}
+
+/* ==============================
+   New Recommendation Card Styles
+   ============================== */
+.recommendation-card {
     background: var(--bg-tertiary);
-    border-radius: 8px;
-    margin-left: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    margin-top: 2rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.recommendation-header {
+    display: flex;
+    align-items: center;
+    color: var(--primary-dark);
+    margin-bottom: 1rem;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.75rem;
+}
+
+.recommendation-header h5 {
+    font-size: 1.2rem;
+}
+
+.recommendation-list {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 0;
+}
+
+.recommendation-item {
+    padding: 0.75rem 0;
+    font-size: 1rem;
+    color: var(--text-secondary);
+    border-bottom: 1px dashed var(--border-color);
+    display: flex;
+    align-items: center;
+}
+
+.recommendation-item:last-child {
+    border-bottom: none;
+}
+
+.recommendation-item::before {
+    content: '✨';
+    margin-right: 10px;
+    font-size: 1.2rem;
 }
 
 /* Cluster-specific styling */

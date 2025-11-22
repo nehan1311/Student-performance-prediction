@@ -40,90 +40,41 @@
     {% endif %}
 
     <!-- EDA Images Grid -->
-    <div class="row g-4">
-      <!-- Exam Score Distribution -->
-      {% if eda_images.exam_hist %}
-        <div class="col-lg-6 col-md-6">
-          <div class="eda-card">
-            <h6>
-              <i class="fas fa-chart-bar me-2"></i>
-              Exam Score Distribution
-            </h6>
-            <img src="{{ eda_images.exam_hist }}" class="img-fluid" alt="Exam Score Distribution">
-            <p class="text-muted mt-3 mb-0 small">
-              <i class="fas fa-info-circle me-1"></i>
-              Distribution of exam scores across all students
-            </p>
-          </div>
-        </div>
+    <div class="eda-section">
+      <!-- CARD 1: Pass vs Fail Distribution -->
+      {% if eda_images.pass_fail_pie %}
+      <div class="eda-card">
+        <h3 class="eda-title">📊 Pass vs Fail Distribution</h3>
+        <img src="{{ eda_images.pass_fail_pie }}" class="eda-img" alt="Pass vs Fail Pie Chart">
+        <p class="eda-caption">Shows the percentage of students who passed versus those who failed.</p>
+      </div>
       {% endif %}
 
-      <!-- Correlation Heatmap -->
-      {% if eda_images.corr %}
-        <div class="col-lg-6 col-md-6">
-          <div class="eda-card">
-            <h6>
-              <i class="fas fa-project-diagram me-2"></i>
-              Correlation Heatmap
-            </h6>
-            <img src="{{ eda_images.corr }}" class="img-fluid" alt="Correlation Heatmap">
-            <p class="text-muted mt-3 mb-0 small">
-              <i class="fas fa-info-circle me-1"></i>
-              Relationships between different features
-            </p>
-          </div>
-        </div>
-      {% endif %}
-
-      <!-- Study Hours vs Score -->
+      <!-- CARD 2: Study Hours vs Exam Score -->
       {% if eda_images.study_scatter %}
-        <div class="col-lg-6 col-md-6">
-          <div class="eda-card">
-            <h6>
-              <i class="fas fa-book-reader me-2"></i>
-              Study Hours vs Exam Score
-            </h6>
-            <img src="{{ eda_images.study_scatter }}" class="img-fluid" alt="Study Hours vs Score">
-            <p class="text-muted mt-3 mb-0 small">
-              <i class="fas fa-info-circle me-1"></i>
-              Impact of study hours on exam performance
-            </p>
-          </div>
-        </div>
+      <div class="eda-card">
+        <h3 class="eda-title">📚 Study Hours vs Exam Score</h3>
+        <img src="{{ eda_images.study_scatter }}" class="eda-img" alt="Study Hours vs Score">
+        <p class="eda-caption">More study hours generally lead to better exam performance.</p>
+      </div>
       {% endif %}
 
-      <!-- Attendance Distribution -->
+      <!-- CARD 3: Attendance Distribution -->
       {% if eda_images.attendance_box %}
-        <div class="col-lg-6 col-md-6">
-          <div class="eda-card">
-            <h6>
-              <i class="fas fa-calendar-alt me-2"></i>
-              Attendance Distribution
-            </h6>
-            <img src="{{ eda_images.attendance_box }}" class="img-fluid" alt="Attendance Distribution">
-            <p class="text-muted mt-3 mb-0 small">
-              <i class="fas fa-info-circle me-1"></i>
-              Statistical distribution of attendance rates
-            </p>
-          </div>
-        </div>
+      <div class="eda-card">
+        <h3 class="eda-title">🕒 Attendance Distribution</h3>
+        <img src="{{ eda_images.attendance_box }}" class="eda-img" alt="Attendance Distribution">
+        <p class="eda-caption">Displays how frequently students attend classes.</p>
+      </div>
       {% endif %}
 
-      <!-- Social Media Hours -->
+      <!-- CARD 4: Social Media Usage -->
       {% if eda_images.social_dist %}
-        <div class="col-lg-6 col-md-6">
-          <div class="eda-card">
-            <h6>
-              <i class="fas fa-share-alt me-2"></i>
-              Social Media Hours Distribution
-            </h6>
-            <img src="{{ eda_images.social_dist }}" class="img-fluid" alt="Social Media Hours">
-            <p class="text-muted mt-3 mb-0 small">
-              <i class="fas fa-info-circle me-1"></i>
-              Distribution of social media usage patterns
-            </p>
-          </div>
-        </div>
+      <div class="eda-card">
+        <h3 class="eda-title">📱 Social Media Usage</h3>
+        <img src="{{ eda_images.social_dist }}" class="eda-img" alt="Social Media Hours">
+        <p class="eda-caption">Shows how many hours students spend on social media per day.</p>
+      </div>
       {% endif %}
     </div>
 
